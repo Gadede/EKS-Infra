@@ -98,15 +98,31 @@ resource "aws_iam_policy" "github_actions_scoped" {
         Sid    = "EKSClusterManagement"
         Effect = "Allow"
         Action = [
-          "eks:DescribeCluster", "eks:ListClusters",
-          "eks:CreateCluster", "eks:DeleteCluster", "eks:UpdateClusterConfig", "eks:TagResource",
-          "eks:CreateNodegroup", "eks:DeleteNodegroup", "eks:DescribeNodegroup", "eks:UpdateNodegroupConfig",
-          "eks:AssociateAccessPolicy", "eks:CreateAccessEntry", "eks:DeleteAccessEntry", "eks:DescribeAccessEntry"
+          "eks:*"
         ]
         Resource = [
           "arn:aws:eks:us-east-2:${data.aws_caller_identity.current.account_id}:cluster/${var.cluster_name}*",
-          "arn:aws:eks:us-east-2:${data.aws_caller_identity.current.account_id}:nodegroup/${var.cluster_name}*/*/*"
+          "arn:aws:eks:us-east-2:${data.aws_caller_identity.current.account_id}:nodegroup/${var.cluster_name}*/*/*",
+          "arn:aws:eks:us-east-2:${data.aws_caller_identity.current.account_id}:addon/${var.cluster_name}*/*/*",
+          "arn:aws:eks:us-east-2:${data.aws_caller_identity.current.account_id}:access-entry/${var.cluster_name}*/*"
         ]
+      },
+      {
+        Sid    = "EKSAutoScalingAndLaunchTemplates"
+        Effect = "Allow"
+        Action = [
+          "autoscaling:CreateAutoScalingGroup", "autoscaling:DeleteAutoScalingGroup",
+          "autoscaling:UpdateAutoScalingGroup", "autoscaling:Describe*",
+          "autoscaling:CreateOrUpdateTags", "autoscaling:DeleteTags",
+          "ec2:CreateLaunchTemplate", "ec2:DeleteLaunchTemplate", "ec2:ModifyLaunchTemplate",
+          "ec2:CreateLaunchTemplateVersion"
+        ]
+        Resource = "*"
+        Condition = {
+          StringEquals = {
+            "aws:RequestedRegion" = "us-east-2"
+          }
+        }
       },
       {
         Sid    = "IAMScopedToProjectPrefix"
@@ -117,18 +133,22 @@ resource "aws_iam_policy" "github_actions_scoped" {
           "iam:AttachRolePolicy", "iam:DetachRolePolicy", "iam:PutRolePolicy", "iam:DeleteRolePolicy",
           "iam:CreatePolicy", "iam:DeletePolicy", "iam:CreatePolicyVersion", "iam:DeletePolicyVersion",
           "iam:CreateOpenIDConnectProvider", "iam:DeleteOpenIDConnectProvider",
-          "iam:TagRole", "iam:TagPolicy", "iam:TagOpenIDConnectProvider",
+          "iam:CreateInstanceProfile", "iam:DeleteInstanceProfile",
+          "iam:AddRoleToInstanceProfile", "iam:RemoveRoleFromInstanceProfile",
+          "iam:TagRole", "iam:TagPolicy", "iam:TagOpenIDConnectProvider", "iam:TagInstanceProfile",
+          "iam:CreateServiceLinkedRole",
           "iam:PassRole",
           # Read-only actions - safe to broaden since they can't change anything.
-          # Terraform's refresh step calls many of these (inline policies, attached
-          # policies, tags, instance profiles) that aren't worth enumerating one by one.
           "iam:Get*",
           "iam:List*"
         ]
         Resource = [
           "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-*",
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.cluster_name}*",
           "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/eksctl-*",
           "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/github-actions-eks-learning",
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/*",
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:instance-profile/${var.cluster_name}*",
           "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/${var.project_name}-*",
           "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/github-actions-eks-learning-policy",
           "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/*"
