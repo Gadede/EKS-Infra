@@ -1,4 +1,3 @@
-# Setup OIDC Workflow for GitHub Actions to assume an IAM role in this AWS account.
 # Registers GitHub's OIDC issuer as a trusted identity provider in this AWS account.
 # This is what lets GitHub Actions request short-lived AWS credentials directly,
 # instead of storing a long-lived Access Key/Secret as a GitHub secret.
@@ -113,12 +112,18 @@ resource "aws_iam_policy" "github_actions_scoped" {
         Sid    = "IAMScopedToProjectPrefix"
         Effect = "Allow"
         Action = [
-          "iam:CreateRole", "iam:DeleteRole", "iam:GetRole", "iam:TagRole",
+          # Write actions - tightly scoped, these can create/modify/delete
+          "iam:CreateRole", "iam:DeleteRole",
           "iam:AttachRolePolicy", "iam:DetachRolePolicy", "iam:PutRolePolicy", "iam:DeleteRolePolicy",
-          "iam:CreatePolicy", "iam:DeletePolicy", "iam:GetPolicy", "iam:GetPolicyVersion",
-          "iam:ListPolicyVersions", "iam:CreatePolicyVersion", "iam:DeletePolicyVersion",
-          "iam:CreateOpenIDConnectProvider", "iam:DeleteOpenIDConnectProvider", "iam:GetOpenIDConnectProvider",
-          "iam:PassRole"
+          "iam:CreatePolicy", "iam:DeletePolicy", "iam:CreatePolicyVersion", "iam:DeletePolicyVersion",
+          "iam:CreateOpenIDConnectProvider", "iam:DeleteOpenIDConnectProvider",
+          "iam:TagRole", "iam:TagPolicy", "iam:TagOpenIDConnectProvider",
+          "iam:PassRole",
+          # Read-only actions - safe to broaden since they can't change anything.
+          # Terraform's refresh step calls many of these (inline policies, attached
+          # policies, tags, instance profiles) that aren't worth enumerating one by one.
+          "iam:Get*",
+          "iam:List*"
         ]
         Resource = [
           "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-*",
