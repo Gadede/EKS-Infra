@@ -128,11 +128,19 @@ resource "aws_iam_policy" "github_actions_scoped" {
         Sid    = "KMSForEKSSecretsEncryption"
         Effect = "Allow"
         Action = [
-          "kms:CreateKey", "kms:ScheduleKeyDeletion", "kms:DescribeKey",
-          "kms:TagResource", "kms:UntagResource", "kms:ListResourceTags",
-          "kms:EnableKeyRotation", "kms:PutKeyPolicy", "kms:GetKeyPolicy",
+          # Write actions
+          "kms:CreateKey", "kms:ScheduleKeyDeletion",
+          "kms:TagResource", "kms:UntagResource",
+          "kms:EnableKeyRotation", "kms:PutKeyPolicy",
           "kms:CreateAlias", "kms:DeleteAlias", "kms:UpdateAlias",
-          "kms:CreateGrant", "kms:RevokeGrant", "kms:ListGrants"
+          "kms:CreateGrant", "kms:RevokeGrant",
+          # Read-only actions - broadened for the same reason as IAM: Terraform's
+          # refresh step calls many individual Get/Describe/List KMS actions
+          # (key rotation status, key policy, resource tags, grants) that aren't
+          # worth enumerating one at a time.
+          "kms:Describe*",
+          "kms:Get*",
+          "kms:List*"
         ]
         # kms:CreateKey has no ARN to scope to before the key exists - same
         # AWS limitation as EC2 create actions. Restricted by region instead.
