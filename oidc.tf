@@ -1,3 +1,4 @@
+# Setup OIDC Workflow for GitHub Actions to assume an IAM role in this AWS account.
 # Registers GitHub's OIDC issuer as a trusted identity provider in this AWS account.
 # This is what lets GitHub Actions request short-lived AWS credentials directly,
 # instead of storing a long-lived Access Key/Secret as a GitHub secret.
