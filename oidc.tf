@@ -125,6 +125,36 @@ resource "aws_iam_policy" "github_actions_scoped" {
         }
       },
       {
+        Sid    = "KMSForEKSSecretsEncryption"
+        Effect = "Allow"
+        Action = [
+          "kms:CreateKey", "kms:ScheduleKeyDeletion", "kms:DescribeKey",
+          "kms:TagResource", "kms:UntagResource", "kms:ListResourceTags",
+          "kms:EnableKeyRotation", "kms:PutKeyPolicy", "kms:GetKeyPolicy",
+          "kms:CreateAlias", "kms:DeleteAlias", "kms:UpdateAlias",
+          "kms:CreateGrant", "kms:RevokeGrant", "kms:ListGrants"
+        ]
+        # kms:CreateKey has no ARN to scope to before the key exists - same
+        # AWS limitation as EC2 create actions. Restricted by region instead.
+        Resource = "*"
+        Condition = {
+          StringEquals = {
+            "aws:RequestedRegion" = "us-east-2"
+          }
+        }
+      },
+      {
+        Sid    = "CloudWatchLogsForEKSControlPlane"
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup", "logs:DeleteLogGroup", "logs:PutRetentionPolicy",
+          "logs:DescribeLogGroups", "logs:TagResource", "logs:ListTagsForResource"
+        ]
+        Resource = [
+          "arn:aws:logs:us-east-2:${data.aws_caller_identity.current.account_id}:log-group:/aws/eks/${var.cluster_name}*:*"
+        ]
+      },
+      {
         Sid    = "IAMScopedToProjectPrefix"
         Effect = "Allow"
         Action = [

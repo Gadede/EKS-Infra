@@ -26,7 +26,7 @@ jobs:
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-to-assume: arn:aws:iam::358604342827:role/github-actions-eks-learning
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup Terraform
@@ -106,3 +106,14 @@ jobs:
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name eks-project-cluster --region ${{ env.AWS_REGION }}
+
+      - name: Apply Kubernetes manifests
+        run: |
+          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/service.yaml
+
+      - name: Verify rollout
+        run: kubectl rollout status deployment/hello-app --timeout=120s
