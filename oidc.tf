@@ -151,7 +151,7 @@ resource "aws_iam_policy" "github_actions_scoped" {
           "logs:DescribeLogGroups", "logs:TagResource", "logs:ListTagsForResource"
         ]
         Resource = [
-          "arn:aws:logs:us-east-2:${data.aws_caller_identity.current.account_id}:log-group:/aws/eks/${var.cluster_name}*:*"
+          "arn:aws:logs:us-east-2:${data.aws_caller_identity.current.account_id}:log-group:*"
         ]
       },
       {
