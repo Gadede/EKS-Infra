@@ -61,7 +61,7 @@ data "aws_caller_identity" "current" {}
 
 resource "aws_iam_policy" "github_actions_scoped" {
   name        = "github-actions-eks-learning-policy"
-  description = "Least-privilege policy for GitHub Actions to manage the eks project"
+  description = "Least-privilege policy for GitHub Actions to manage the eks-learning project"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -114,14 +114,17 @@ resource "aws_iam_policy" "github_actions_scoped" {
         Action = [
           "iam:CreateRole", "iam:DeleteRole", "iam:GetRole", "iam:TagRole",
           "iam:AttachRolePolicy", "iam:DetachRolePolicy", "iam:PutRolePolicy", "iam:DeleteRolePolicy",
-          "iam:CreatePolicy", "iam:DeletePolicy", "iam:GetPolicy", "iam:ListPolicyVersions",
+          "iam:CreatePolicy", "iam:DeletePolicy", "iam:GetPolicy", "iam:GetPolicyVersion",
+          "iam:ListPolicyVersions", "iam:CreatePolicyVersion", "iam:DeletePolicyVersion",
           "iam:CreateOpenIDConnectProvider", "iam:DeleteOpenIDConnectProvider", "iam:GetOpenIDConnectProvider",
           "iam:PassRole"
         ]
         Resource = [
           "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-*",
           "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/eksctl-*",
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/github-actions-eks-learning",
           "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/${var.project_name}-*",
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/github-actions-eks-learning-policy",
           "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/*"
         ]
       },
