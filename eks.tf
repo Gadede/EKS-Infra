@@ -13,9 +13,11 @@ module "eks" {
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
 
-  # This makes the IAM user/role that runs `terraform apply` a cluster admin
-  # automatically - otherwise you'd create a cluster you can't even kubectl into.
-  enable_cluster_creator_admin_permissions = true
+  # Disabled in favor of an explicit, static access entry below - this flag
+  # grants admin to whichever identity happens to run `terraform apply` at
+  # that moment, which silently moved from the human operator to the
+  # GitHub Actions role once the pipeline started running applies too.
+  enable_cluster_creator_admin_permissions = false
 
   eks_managed_node_groups = {
     default = {
@@ -23,7 +25,7 @@ module "eks" {
       instance_types = ["t3.micro"]
 
       min_size     = 1
-      max_size     = 2
+      max_size     = 3
       desired_size = 2
     }
   }
