@@ -189,6 +189,7 @@ resource "aws_iam_policy" "github_actions_scoped" {
           "arn:aws:iam::${data.aws_caller_identity.current.account_id}:instance-profile/${var.cluster_name}*",
           "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/${var.project_name}-*",
           "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/github-actions-eks-learning-policy",
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/AWSLoadBalancerControllerIAMPolicy-*",
           "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/*"
         ]
       },
